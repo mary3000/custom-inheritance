@@ -49,6 +49,9 @@ v##clazz[#method] = {true, [](void* obj) { \
 }};
 
 #define VIRTUAL_CALL(obj, method) \
+if ((obj)->vptr->find(#method) == (obj)->vptr->end()) { \
+    throw std::invalid_argument("error: class " + (obj)->name_ + " doesn't have method " + #method); \
+} \
 std::cout << (obj)->name_ << "::" << #method << std::endl; \
 (obj)->vptr->at(#method).first ? (obj)->vptr->at(#method).second(obj) : (obj)->vptr->at(#method).second(&(obj)->base_);
 
@@ -113,6 +116,12 @@ int main() {
     VIRTUAL_CALL(d_ptr, Both)
     VIRTUAL_CALL(d_ptr, BaseOnly)
     VIRTUAL_CALL(d_ptr, DerivedOnly)
+
+    try {
+        VIRTUAL_CALL(&b, DerivedOnly)
+    } catch (std::invalid_argument& e) {
+        std::cout << e.what() << std::endl;
+    }
 
     return 0;
 }
